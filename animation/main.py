@@ -1,4 +1,4 @@
-from animation.engine import (
+from engine import (
     Animation,
     AnimationController,
     FramebufferDisplay,
