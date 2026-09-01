@@ -1,4 +1,4 @@
-from engine import (
+from animation.engine import (
     Animation,
     AnimationController,
     FramebufferDisplay,
@@ -13,18 +13,18 @@ idle = Animation(
     name="idle",
 
     frames=[
-        ("001.png", 1),
-        ("002.png", 1),
-        ("003.png", 3),
-        ("004.png", 1),
-        ("005.png", 1),
-        ("006.png", 1),
-        ("007.png", 1),
-        ("008.png", 1),
-        ("009.png", 1),
-        ("010.png", 1),
-        ("011.png", 2),
-        ("012.png", 1),
+        ("001.png", 3),
+        ("002.png", 3),
+        ("003.png", 6),
+        ("004.png", 3),
+        ("005.png", 3),
+        ("006.png", 3),
+        ("007.png", 3),
+        ("008.png", 3),
+        ("009.png", 3),
+        ("010.png", 3),
+        ("011.png", 6),
+        ("012.png", 3),
     ],
 
     loop=True,
