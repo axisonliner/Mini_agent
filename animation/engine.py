@@ -12,8 +12,8 @@ from PIL import Image
 # Display configuration
 # ============================================================
 
-DISPLAY_WIDTH = 480
-DISPLAY_HEIGHT = 320
+DISPLAY_WIDTH = 240
+DISPLAY_HEIGHT = 160
 
 FPS = 24.0
 TICK_TIME = 1.0 / FPS
