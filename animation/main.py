@@ -1,110 +1,112 @@
-from engine import (
-    Animation,
-    AnimationController,
-    FramebufferDisplay,
-)
 
 
-# ============================================================
-# IDLE
-# ============================================================
+import time
+from pathlib import Path
 
-idle = Animation(
-    name="idle",
-
-    frames=[
-        ("001.png", 3),
-        ("002.png", 3),
-        ("003.png", 5),
-        ("004.png", 3),
-        ("005.png", 3),
-        ("006.png", 3),
-        ("007.png", 3),
-        ("008.png", 3),
-        ("009.png", 4),
-        ("010.png", 4),
-        ("011.png", 6),
-        ("012.png", 20),
-    ],
-
-    loop=True,
-)
+from animation_engine import AnimationEngine
+from animation_loader import AnimationLoader
+from framebuffer_renderer import FramebufferRenderer
 
 
-# ============================================================
-# Future animations
-# ============================================================
+FPS = 24
 
-# Поки не використовуємо їх.
-#
-# Коли ти намалюєш thinking:
-#
-# thinking = Animation(
-#     name="thinking",
-#     frames=[
-#         ("001.png", 6),
-#         ("002.png", 3),
-#         ("003.png", 4),
-#     ],
-#     loop=True,
-# )
+BASE_DIRECTORY = Path(__file__).resolve().parent
 
+ASSETS_DIRECTORY = BASE_DIRECTORY / "assets"
+ANIMATION_FILE = BASE_DIRECTORY / "cache" / "animation.json"
 
-# ============================================================
-# MAIN
-# ============================================================
+FRAMEBUFFER = "/dev/fb0"
+
+WIDTH = 480
+HEIGHT = 320
+
 
 def main():
 
-    display = FramebufferDisplay(
-        "/dev/fb0"
+    # ---------------------------------------------------------
+    # Load animations
+    # ---------------------------------------------------------
+
+    loader = AnimationLoader(
+        assets_directory=ASSETS_DIRECTORY
     )
 
-    controller = AnimationController(
-        display=display,
-        assets_directory="assets",
+    animations = loader.load_file(
+        ANIMATION_FILE
     )
 
-    # --------------------------------------------------------
-    # Register animations
-    # --------------------------------------------------------
+    if "idle" not in animations:
+        raise RuntimeError(
+            "Animation 'idle' was not found"
+        )
 
-    controller.add_animation(
-        idle
+    idle = animations["idle"]
+
+    print()
+    print("Idle Animation Test")
+    print("-------------------")
+    print(f"Frames: {len(idle.frames)}")
+    print(f"Ticks: {idle.total_ticks}")
+    print(f"FPS: {FPS}")
+    print(f"Duration: {idle.duration(FPS):.3f} sec")
+    print()
+
+    # ---------------------------------------------------------
+    # Animation engine
+    # ---------------------------------------------------------
+
+    engine = AnimationEngine(
+        fps=FPS
     )
 
-    # --------------------------------------------------------
-    # Start animation engine
-    # --------------------------------------------------------
+    engine.set_animation(idle)
 
-    controller.start()
+    # ---------------------------------------------------------
+    # Framebuffer renderer
+    # ---------------------------------------------------------
 
-    # --------------------------------------------------------
-    # Initial state
-    # --------------------------------------------------------
-
-    controller.set_state(
-        "idle"
+    renderer = FramebufferRenderer(
+        framebuffer=FRAMEBUFFER,
+        width=WIDTH,
+        height=HEIGHT,
     )
 
-    print()
-    print("Animation engine running.")
-    print()
-    print("Current state:")
-    print("    idle")
-    print()
-    print("Press Ctrl+C to stop.")
-    print()
+    renderer.open()
 
     try:
 
+        print("Starting idle animation...")
+        print("Press Ctrl+C to stop.")
+        print()
+
+        last_frame = None
+
         while True:
 
-            # The real AI agent will eventually control
-            # the AnimationController from here.
+            if engine.update():
 
-            # For now we simply keep the main program alive.
-            controller._stop.wait(1.0)
+                frame = engine.get_current_frame()
+
+                if frame is None:
+                    continue
+
+                if engine.current_frame_index != last_frame:
+
+                    print(
+                        f"frame={engine.current_frame_index:02d} "
+                        f"hold={frame.hold} "
+                        f"{frame.image.name}"
+                    )
+
+                    renderer.render(
+                        frame.image
+                    )
+
+                    last_frame = (
+                        engine.current_frame_index
+                    )
+
+            time.sleep(0.001)
 
     except KeyboardInterrupt:
 
@@ -113,8 +115,7 @@ def main():
 
     finally:
 
-        controller.stop()
-        display.close()
+        renderer.close()
 
 
 if __name__ == "__main__":
